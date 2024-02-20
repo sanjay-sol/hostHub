@@ -1,6 +1,19 @@
 const { exec } = require("child_process");
 const path = require("path");
 const fs = require("fs");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const mimeType = require("mime-types");
+
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+const PROJECT_ID = process.env.PROJECT_ID;
+
 async function init() {
   console.log("Starting server...");
 
@@ -22,8 +35,19 @@ async function init() {
       recursive: true,
     });
     for (const filePath of distFolderContents) {
-        if (fs.lstatSync(filePath).isDirectory()) continue;
-        
+      if (fs.lstatSync(filePath).isDirectory()) continue;
+      console.log("Uploading", filePath);
+      const command = new PutObjectCommand({
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `__output/${PROJECT_ID}/${filePath}`,
+        Body: fs.createReadStream(filePath),
+        ContentType: mimeType.lookup(filePath),
+      });
+      await s3Client.send(command);
+      console.log("uploaded", filePath);
     }
+    console.log(" Done.");
   });
 }
+
+init();
