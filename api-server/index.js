@@ -1,13 +1,14 @@
 const express = require("express");
 const { ECSClient, RunTaskCommand } = require("@aws-sdk/client-ecs");
 const { generateSlug } = require("random-word-slugs");
+require("dotenv").config();
 const app = express();
 const PORT = 9000;
 
 const ecsClient = new ECSClient({
-    region: "ap-south-1",
+  region: "ap-south-1",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    accessKeyId: process.env.AWS_ACCESSKEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
