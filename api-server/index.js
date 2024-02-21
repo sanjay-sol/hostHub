@@ -7,13 +7,14 @@ const PORT = 9000;
 const ecsClient = new ECSClient({
     region: "ap-south-1",
   credentials: {
-  
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
 
 const config = {
-  CLUSTER: "arn:aws:ecs:ap-south-1:855829953839:cluster/builder-cluster-1",
-  TASK: "arn:aws:ecs:ap-south-1:855829953839:task-definition/builder-task:1",
+  CLUSTER: process.env.AWS_CLUSTER,
+  TASK: process.env.AWS_TASK,
 };
 
 app.use(express.json());
