@@ -7,7 +7,8 @@ const mimeType = require("mime-types");
 const s3Client = new S3Client({
   region: "ap-south-1",
   credentials: {
-   
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
 
@@ -23,9 +24,12 @@ async function init() {
     console.log(data.toString());
   });
 
+  console.log("1----")
+
   p.stdout.on("error", function (data) {
     console.error("Error", data.toString());
   });
+  console.log("2----");
 
   p.on("close", async function () {
     console.log(`Build completed.`);
@@ -33,8 +37,11 @@ async function init() {
     const distFolderContents = fs.readdirSync(distFolderPath, {
       recursive: true,
     });
+  console.log("3----");
     for (const file of distFolderContents) {
       const filePath = path.join(distFolderPath, file);
+  console.log("4----");
+
       if (fs.lstatSync(filePath).isDirectory()) continue;
       console.log("Uploading", filePath);
       const command = new PutObjectCommand({
@@ -43,6 +50,8 @@ async function init() {
         Body: fs.createReadStream(filePath),
         ContentType: mimeType.lookup(filePath),
       });
+  console.log("5----");
+
       await s3Client.send(command);
       console.log("uploaded", filePath);
     }
