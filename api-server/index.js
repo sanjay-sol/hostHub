@@ -8,9 +8,8 @@ const Redis = require("ioredis");
 const { Server } = require("socket.io");
 
 const subscriber = new Redis(
-  process.env.REDIS_URL
+  "rediss://default:AVNS_uwUrvXtzocWMFdio5Zi@redis-6f2c738-sanjaysirangi-1cca.a.aivencloud.com:17389"
 );
-
 const io = new Server({ cors: "*" });
 
 io.on("connection", (socket) => {
