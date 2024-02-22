@@ -6,11 +6,12 @@ const app = express();
 const PORT = 9000;
 const Redis = require("ioredis");
 const { Server } = require("socket.io");
-
+const { createServer } = require("http");
 const subscriber = new Redis(
   "rediss://default:AVNS_uwUrvXtzocWMFdio5Zi@redis-6f2c738-sanjaysirangi-1cca.a.aivencloud.com:17389"
 );
-const io = new Server({ cors: "*" });
+const httpServer = createServer(app);
+const io = new Server(httpServer, { cors: "*" });
 
 io.on("connection", (socket) => {
   socket.on("subscribe", (channel) => {
@@ -19,7 +20,7 @@ io.on("connection", (socket) => {
   });
 });
 
-io.listen(9002, () => console.log("Socket Server 9002"));
+// io.listen(9002, () => console.log("Socket Server 9002"));
 
 const ecsClient = new ECSClient({
   region: "ap-south-1",
