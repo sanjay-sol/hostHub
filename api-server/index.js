@@ -2,7 +2,9 @@ const express = require("express");
 const { ECSClient, RunTaskCommand } = require("@aws-sdk/client-ecs");
 const { generateSlug } = require("random-word-slugs");
 require("dotenv").config();
+const cors = require("cors");
 const app = express();
+app.use(cors({ origin: "*" }));
 const PORT = 9000;
 // const Redis = require("ioredis");
 // const { Server } = require("socket.io");
@@ -28,6 +30,8 @@ const ecsClient = new ECSClient({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
+console.log(process.env.AWS_ACCESSKEY_ID);
+console.log(process.env.AWS_SECRET_ACCESS_KEY);
 
 const config = {
   CLUSTER: process.env.AWS_CLUSTER,
