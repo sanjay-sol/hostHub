@@ -13,7 +13,7 @@ const io = new Server({ cors: "*" });
 io.on("connection", (socket) => {
   socket.on("subscribe", (channel) => {
     socket.join(channel);
-    socket.emit("message", `Joined ${channel}`);
+    socket.emit("message", JSON.stringify({ type: "joined", channel }));
   });
 });
 
