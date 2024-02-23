@@ -1,5 +1,7 @@
 const express = require("express");
+const cors = require("cors");
 const app = express();
+app.use(cors({ origin: "*" }));
 const Redis = require("ioredis");
 const { Server } = require("socket.io");
 
