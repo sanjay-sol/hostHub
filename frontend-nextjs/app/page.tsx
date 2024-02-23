@@ -19,6 +19,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
 
   const [projectId, setProjectId] = useState<string | undefined>();
+  const [slug, setSlug] = useState<string | undefined>();
   const [deployPreviewURL, setDeployPreviewURL] = useState<
     string | undefined
   >();
@@ -40,25 +41,32 @@ export default function Home() {
       `https://hosthub-3.onrender.com/project`,
       {
         gitURL: repoURL,
-        slug: projectId,
+        slug: slug,
       }
     );
 
     if (data && data.data) {
       const { projectSlug, url } = data.data;
-      setProjectId(projectSlug);
       setDeployPreviewURL(url);
 
       console.log(`Subscribing to logs:${projectSlug}`);
       socket.emit("subscribe", `logs:${projectSlug}`);
     }
-  }, [projectId, repoURL]);
+  }, [slug, repoURL]);
 
   const handleSocketIncommingMessage = useCallback((message: string) => {
-    console.log(`[Incomming Socket Message]:`, typeof message, message);
-    const { log } = JSON.parse(message);
-    setLogs((prev) => [...prev, log]);
-    logContainerRef.current?.scrollIntoView({ behavior: "smooth" });
+    try {
+      console.log(`[Incomming Socket Message]:`, typeof message, message);
+      const { log } = JSON.parse(message);
+      console.log("MEssage########----------", message);
+      console.log("logg----------", log);
+      if (log || message) {
+        setLogs((prev) => [...prev, message]);
+        logContainerRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
+    } catch (error) {
+      console.error("Error parsing socket message:", error);
+    }
   }, []);
 
   useEffect(() => {
@@ -72,7 +80,7 @@ export default function Home() {
   return (
     <main className="flex justify-center items-center h-[100vh]">
       <div className="w-[600px]">
-        <span className="flex justify-start items-center gap-2">
+        <span className="flex flex-col justify-start gap-2">
           <Github className="text-5xl" />
           <Input
             disabled={loading}
@@ -80,6 +88,14 @@ export default function Home() {
             onChange={(e) => setURL(e.target.value)}
             type="url"
             placeholder="Github URL"
+          />
+          {/* <p className="text-sm text-neutral-300">Slug</p> */}
+          <Input
+            disabled={loading}
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            type="text"
+            placeholder="Slug (Optional)"
           />
         </span>
         <Button
@@ -89,34 +105,31 @@ export default function Home() {
         >
           {loading ? "In Progress" : "Deploy"}
         </Button>
-        {deployPreviewURL && (
-          <div className="mt-2 bg-slate-900 py-4 px-2 rounded-lg">
-            <p>
-              Preview URL{" "}
-              <a
-                target="_blank"
-                className="text-sky-400 bg-sky-950 px-3 py-2 rounded-lg"
-                href={deployPreviewURL}
-              >
-                {deployPreviewURL}
-              </a>
-            </p>
-          </div>
-        )}
-        {logs.length > 0 && (
-          <div
-            className={`${firaCode.className} text-sm text-green-500 logs-container mt-5 border-green-500 border-2 rounded-lg p-4 h-[300px] overflow-y-auto`}
-          >
-            <pre className="flex flex-col gap-1">
-              {logs.map((log, i) => (
-                <code
-                  ref={logs.length - 1 === i ? logContainerRef : undefined}
-                  key={i}
-                >{`> ${log}`}</code>
-              ))}
-            </pre>
-          </div>
-        )}
+        <div className="mt-2 bg-slate-900 py-4 px-2 rounded-lg">
+          <p>
+            Preview URL :
+            <a
+              target="_blank"
+              className="text-sky-400 bg-sky-950 px-3 py-2 rounded-lg"
+              href={deployPreviewURL}
+            >
+              {deployPreviewURL}
+            </a>
+          </p>
+        </div>
+        <h1 className="text-2xl text-green-500 mt-5">Build Logs</h1>
+        <div
+          className={`${firaCode.className} text-sm text-green-500 logs-container mt-5 border-green-500 border-2 rounded-lg p-4 h-[300px] overflow-y-auto`}
+        >
+          <pre className="flex flex-col gap-1">
+            {logs.map((log, i) => (
+              <code
+                ref={logs.length - 1 === i ? logContainerRef : undefined}
+                key={i}
+              >{`> ${log}`}</code>
+            ))}
+          </pre>
+        </div>
       </div>
     </main>
   );
