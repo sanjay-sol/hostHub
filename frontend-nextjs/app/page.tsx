@@ -7,7 +7,7 @@ import { Github } from "lucide-react";
 import { Fira_Code } from "next/font/google";
 import axios from "axios";
 
-const socket = io("http://localhost:9002");
+const socket = io("https://hosthub-ws.onrender.com");
 
 const firaCode = Fira_Code({ subsets: ["latin"] });
 
@@ -17,8 +17,6 @@ export default function Home() {
   const [logs, setLogs] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(false);
-
-  const [slugg , setSlugg] = useState<string | undefined>();
 
   const [projectId, setProjectId] = useState<string | undefined>();
   const [deployPreviewURL, setDeployPreviewURL] = useState<
@@ -35,42 +33,26 @@ export default function Home() {
     return [regex.test(repoURL), "Enter valid Github Repository URL"];
   }, [repoURL]);
 
- const handleClickDeploy = useCallback(async () => {
-   setLoading(true);
+  const handleClickDeploy = useCallback(async () => {
+    setLoading(true);
 
-   try {
-     const response = await fetch(`https://hosthub-3.onrender.com/project`, {
-       method: "POST",
-       headers: {
-         "Content-Type": "application/json",
-       },
-       body: JSON.stringify({
-         gitURL: repoURL,
-         slug: projectId,
-       }),
-     });
+    const { data } = await axios.post(
+      `https://hosthub-3.onrender.com/project`,
+      {
+        gitURL: repoURL,
+        slug: projectId,
+      }
+    );
 
-     if (!response.ok) {
-       throw new Error(`Failed to deploy project. Status: ${response.status}`);
-     }
+    if (data && data.data) {
+      const { projectSlug, url } = data.data;
+      setProjectId(projectSlug);
+      setDeployPreviewURL(url);
 
-     const data = await response.json();
-
-     if (data && data.data) {
-       const { projectSlug, url } = data.data;
-       setProjectId(projectSlug);
-       setDeployPreviewURL(url);
-
-       console.log(`Subscribing to logs:${projectSlug}`);
-       socket.emit("subscribe", `logs:${projectSlug}`);
-     }
-   } catch (error) {
-     console.error("Error while making fetch POST request:", error);
-     // Handle the error here, you can set an error state or display a message to the user
-   } finally {
-     setLoading(false);
-   }
- }, [projectId, repoURL]);
+      console.log(`Subscribing to logs:${projectSlug}`);
+      socket.emit("subscribe", `logs:${projectSlug}`);
+    }
+  }, [projectId, repoURL]);
 
   const handleSocketIncommingMessage = useCallback((message: string) => {
     console.log(`[Incomming Socket Message]:`, typeof message, message);
