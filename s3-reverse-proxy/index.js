@@ -1,10 +1,11 @@
 const express = require("express");
 const httpProxy = require("http-proxy");
-
+const cors = require("cors");
 const app = express();
+app.use(cors({ origin: "*" }));
 const PORT = 8000;
 
-const BASE_PATH = "https://hosthub-bucket.s3.ap-south-1.amazonaws.com/__output";
+const BASE_PATH = "https://hosthub-s3.onrender.com/";
 
 const proxy = httpProxy.createProxy();
 
