@@ -10,7 +10,10 @@ const proxy = httpProxy.createProxy();
 
 app.use((req, res) => {
   const hostname = req.hostname;
+
+  console.log(hostname, "hostname")
   const subdomain = hostname.split(".")[0];
+  console.log(subdomain, "subdomain")
 
   const resolvesTo = `${BASE_PATH}/${subdomain}`;
 
@@ -23,4 +26,3 @@ proxy.on("proxyReq", (proxyReq, req, res) => {
 });
 
 app.listen(PORT, () => console.log(`Reverse Proxy Running..${PORT}`));
- 
