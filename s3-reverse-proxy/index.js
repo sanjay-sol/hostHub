@@ -9,7 +9,7 @@ const BASE_PATH = "https://hosthub-bucket.s3.ap-south-1.amazonaws.com/__output";
 
 const proxy = httpProxy.createProxy();
 
-app.use("/*", (req, res) => {
+app.get("/*", (req, res) => {
   const hostname = req.hostname;
   console.log("Hostname", hostname);
 
