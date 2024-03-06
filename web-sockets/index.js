@@ -1,15 +1,17 @@
 const express = require("express");
 const cors = require("cors");
-const app = express();
-app.use(cors({ origin: "*" }));
 const Redis = require("ioredis");
 const { Server } = require("socket.io");
 
-const subscriber = new Redis(
-  "rediss://default:AVNS_uwUrvXtzocWMFdio5Zi@redis-6f2c738-sanjaysirangi-1cca.a.aivencloud.com:17389"
-);
+const app = express();
 const io = new Server({ cors: "*" });
+const subscriber = new Redis(process.env.REDIS_URL);
 
+//* Middleware
+app.use(cors({ origin: "*" }));
+app.use(express.json());
+
+//* WebSocket connection
 io.on("connection", (socket) => {
   socket.on("subscribe", (channel) => {
     socket.join(channel);
@@ -17,18 +19,16 @@ io.on("connection", (socket) => {
   });
 });
 
-io.listen(9002, () => console.log("Socket Server 9002"));
-
-
-app.use(express.json());
+//* Redis subscription
+subscriber.on("pmessage", (pattern, channel, message) => {
+  io.to(channel).emit("message", message);
+});
 
 async function initRedisSubscribe() {
   console.log("Subscribed to logs....");
-  subscriber.psubscribe("logs:*");
-  subscriber.on("pmessage", (pattern, channel, message) => {
-    io.to(channel).emit("message", message);
-  });
+  await subscriber.psubscribe("logs:*");
 }
 
-initRedisSubscribe();
-
+initRedisSubscribe().then(() => {
+  io.listen(9002, () => console.log("Socket Server 9002"));
+});
