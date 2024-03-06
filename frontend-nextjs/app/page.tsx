@@ -8,7 +8,6 @@ import { Fira_Code } from "next/font/google";
 import axios from "axios";
 
 const socket = io("https://hosthub-ws.onrender.com");
-// const socket = io("http://localhost:9002");
 
 const firaCode = Fira_Code({ subsets: ["latin"] });
 
@@ -39,7 +38,7 @@ export default function Home() {
     setLoading(true);
 
     const { data } = await axios.post(
-      `http://localhost:9000/project`,
+      `https://hosthub-3.onrender.com/project`,
       {
         gitURL: repoURL,
         slug: slug,
@@ -59,6 +58,8 @@ export default function Home() {
     try {
       console.log(`[Incomming Socket Message]:`, typeof message, message);
       const { log } = JSON.parse(message);
+      console.log("MEssage########----------", message);
+      console.log("logg----------", log);
       if (log || message) {
         setLogs((prev) => [...prev, message]);
         logContainerRef.current?.scrollIntoView({ behavior: "smooth" });

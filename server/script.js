@@ -7,15 +7,15 @@ const Redis = require("ioredis");
 
 
 const Publisher = new Redis(
-  "rediss://default:AVNS_uwUrvXtzocWMFdio5Zi@redis-6f2c738-sanjaysirangi-1cca.a.aivencloud.com:17389"
+  process.env.REDIS_URL
 );
 
 
 const s3Client = new S3Client({
   region: "ap-south-1",
   credentials: {
-    accessKeyId: "AKIA4OQ3QXUXQCTZ3BF3",
-    secretAccessKey: "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",
+    accessKeyId: process.env.AWS_ACCESSKEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
 
@@ -70,7 +70,6 @@ async function init() {
     }
     publishLogs('Upload completed...');
     console.log(" Done.");
-    process.exit(0);
   });
 }
 
