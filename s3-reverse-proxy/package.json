@@ -4,14 +4,20 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.521.0",
+    "aws-sdk": "^2.1567.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
-    "http-proxy": "^1.18.1"
+    "http-proxy": "^1.18.1",
+    "mime-types": "^2.1.35",
+    "nodemon": "^3.1.0",
+    "serve": "^14.2.1"
   }
 }

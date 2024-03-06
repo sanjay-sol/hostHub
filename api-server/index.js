@@ -6,7 +6,7 @@ const cors = require("cors");
 const app = express();
 app.use(cors({ origin: "*" }));
 const PORT = 9000;
-const prismaClient = require("@prisma/client")
+const prismaClient = require("@prisma/client");
 const ecsClient = new ECSClient({
   region: "ap-south-1",
   credentials: {
@@ -23,8 +23,6 @@ const config = {
 };
 
 const prismaclient = new prismaClient.PrismaClient({});
-
-
 
 app.use(express.json());
 
