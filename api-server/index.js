@@ -1,82 +1,91 @@
 const express = require("express");
 const { ECSClient, RunTaskCommand } = require("@aws-sdk/client-ecs");
 const { generateSlug } = require("random-word-slugs");
-require("dotenv").config();
 const cors = require("cors");
+require("dotenv").config();
+
 const app = express();
-app.use(cors({ origin: "*" }));
-const PORT = 9000;
-const prismaClient = require("@prisma/client")
+const PORT = process.env.PORT || 9000;
+
 const ecsClient = new ECSClient({
-  region: "ap-south-1",
+  region: process.env.AWS_REGION || "ap-south-1",
   credentials: {
     accessKeyId: process.env.AWS_ACCESSKEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
-console.log(process.env.AWS_ACCESSKEY_ID);
-console.log(process.env.AWS_SECRET_ACCESS_KEY);
 
 const config = {
   CLUSTER: process.env.AWS_CLUSTER,
   TASK: process.env.AWS_TASK,
 };
 
-const prismaclient = new prismaClient.PrismaClient({});
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 
-
-
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 
-app.use("/deploy", async (req, res) => {
-  const data = await prismaclient.project.findMany();
-  return res.json(data);
+app.get("/deploy", async (req, res) => {
+  try {
+    const data = await prisma.project.findMany();
+    return res.json(data);
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
-app.use("/project", async (req, res) => {
-  const { gitURL, slug } = req.body;
-  const projectSlug = slug ? slug : generateSlug();
+app.post("/project", async (req, res) => {
+  try {
+    const { gitURL, slug } = req.body;
+    const projectSlug = slug || generateSlug();
 
-  //! Spin the container by api call
-  const command = new RunTaskCommand({
-    cluster: config.CLUSTER,
-    taskDefinition: config.TASK,
-    launchType: "FARGATE",
-    count: 1,
-    networkConfiguration: {
-      awsvpcConfiguration: {
-        subnets: [
-          "subnet-0603067e151c25464",
-          "subnet-012b6d8474b814aaa",
-          "subnet-0a8c7166955ff0521",
-        ],
-        securityGroups: ["sg-0d9dc983fa2acffbd"],
-        assignPublicIp: "ENABLED",
-      },
-    },
-    overrides: {
-      containerOverrides: [
-        {
-          name: "builder-image",
-          environment: [
-            {
-              name: "GIT_URL",
-              value: gitURL,
-            },
-            {
-              name: "PROJECT_ID",
-              value: projectSlug,
-            },
+    const command = new RunTaskCommand({
+      cluster: config.CLUSTER,
+      taskDefinition: config.TASK,
+      launchType: "FARGATE",
+      count: 1,
+      networkConfiguration: {
+        awsvpcConfiguration: {
+          subnets: [
+            process.env.AWS_SUBNET1,
+            process.env.AWS_SUBNET2,
+            process.env.AWS_SUBNET3,
           ],
+          securityGroups: [`sg-${process.env.AWS_SECURITY_GROUP}`],
+          assignPublicIp: "ENABLED",
         },
-      ],
-    },
-  });
-  await ecsClient.send(command);
-  return res.json({
-    status: "queued",
-    data: { projectSlug, url: `http://${projectSlug}.localhost:8000` },
-  });
+      },
+      overrides: {
+        containerOverrides: [
+          {
+            name: process.env.AWS_IMAGE_NAME,
+            environment: [
+              {
+                name: "GIT_URL",
+                value: gitURL,
+              },
+              {
+                name: "PROJECT_ID",
+                value: projectSlug,
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    await ecsClient.send(command);
+
+    return res.json({
+      status: "queued",
+      data: { projectSlug, url: `http://${projectSlug}.localhost:8000` },
+    });
+  } catch (error) {
+    console.error("Error creating project:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 app.listen(PORT, () => console.log(`Api Server Running..${PORT}`));
