@@ -7,6 +7,11 @@ HostHub is a platform that allows users to deploy their React projects by provid
 
 <img width="1316" alt="host-hub" src="https://github.com/sanjay-sol/hostHub/assets/114111046/2840096e-a3db-44a9-8104-9ccbff86a045">
 
+## Demo Video
+
+https://github.com/sanjay-sol/hostHub/assets/114111046/1d17ae56-967a-4486-b974-1c3ba8a10d47
+
+
 ## Tech Stack
 
 - Docker
